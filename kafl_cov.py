@@ -24,6 +24,7 @@ import multiprocessing as mp
 import subprocess
 import tempfile
 import logging
+from contextlib import contextmanager
 from operator import itemgetter
 
 import msgpack
@@ -42,6 +43,13 @@ import csv
 
 null_hash = None
 logger = logging.getLogger(__name__)
+
+@contextmanager
+def cleanup_qemu():
+    try:
+        yield
+    finally:
+        qemu_sweep("Detected potential qemu zombies, please kill -9:")
 
 class TraceParser:
 
@@ -471,48 +479,46 @@ def funky_trace_run(q, input_path, retry=1):
 
 def main():
     global null_hash
+    with cleanup_qemu():
+        print_banner("kAFL Coverage Analyzer")
 
-    print_banner("kAFL Coverage Analyzer")
+        if not self_check():
+            return -1
 
-    if not self_check():
-        return -1
+        parser = ConfigArgsParser()
+        config = parser.parse_debug_options()
 
-    parser = ConfigArgsParser()
-    config = parser.parse_debug_options()
+        if not post_self_check(config):
+            return -1
 
-    if not post_self_check(config):
-        return -1
+        data_dir = config.input
 
-    data_dir = config.input
+        null_hash = ExecutionResult.get_null_hash(config.bitmap_size)
 
-    null_hash = ExecutionResult.get_null_hash(config.bitmap_size)
+        nproc = min(config.processes, os.cpu_count())
+        logger.info("Using %d/%d cores..." % (nproc, os.cpu_count()))
 
-    nproc = min(config.processes, os.cpu_count())
-    logger.info("Using %d/%d cores..." % (nproc, os.cpu_count()))
+        logger.info("Scanning target data_dir »%s«..." % data_dir)
+        input_list = get_inputs_by_time(data_dir)
 
-    logger.info("Scanning target data_dir »%s«..." % data_dir)
-    input_list = get_inputs_by_time(data_dir)
+        start = time.time()
+        logger.info("Generating traces...")
+        trace_dir = generate_traces(config, nproc, input_list)
+        end = time.time()
+        logger.info("\n\nDone. Time taken: %.2fs\n" % (end - start))
 
-    start = time.time()
-    logger.info("Generating traces...")
-    trace_dir = generate_traces(config, nproc, input_list)
-    end = time.time()
-    logger.info("\n\nDone. Time taken: %.2fs\n" % (end - start))
+        if not trace_dir:
+            return -1
 
-    if not trace_dir:
-        return -1
+        logger.info("Parsing traces...")
+        trace_parser = TraceParser(trace_dir)
+        trace_parser.parse_trace_list(nproc, input_list)
+        # TODO: store parsed traces here here and share class with other tools
 
-    logger.info("Parsing traces...")
-    trace_parser = TraceParser(trace_dir)
-    trace_parser.parse_trace_list(nproc, input_list)
-    # TODO: store parsed traces here here and share class with other tools
+        # generate basic summary files
+        trace_parser.gen_reports()
 
-    # generate basic summary files
-    trace_parser.gen_reports()
-
-    return 0
+        return 0
 
 if __name__ == "__main__":
-    ret = main()
-    qemu_sweep("Detected potential qemu zombies, please kill -9:")
-    sys.exit(ret)
+    main()

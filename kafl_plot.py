@@ -131,8 +131,7 @@ def main(workdir, outfile=None):
     dot = Graph(workdir, outfile)
     dot.process_once()
 
-if __name__ == "__main__":
-
+def entrypoint():
     print_banner("kAFL Plotter")
 
     if (len(sys.argv) == 2):   main(sys.argv[1])
@@ -141,3 +140,5 @@ if __name__ == "__main__":
         print("Missing arguments. Usage:\n\n\t%s </path/to/workdir> [outfile.dot]\n" % sys.argv[0])
         sys.exit()
 
+if __name__ == "__main__":
+    entrypoint()

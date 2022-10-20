@@ -806,8 +806,7 @@ def main(stdscr):
     gui = GuiDrawer(sys.argv[1], stdscr)
     gui.loop()
 
-if __name__ == "__main__":
-
+def entrypoint():
     locale.setlocale(locale.LC_ALL, '')
     code = locale.getpreferredencoding()
 
@@ -822,3 +821,7 @@ if __name__ == "__main__":
         print("Error reading from workdir. Exit.")
     except KeyboardInterrupt:
         pass
+
+
+if __name__ == "__main__":
+    entrypoint()

@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "kafl_fuzzer"
+version = "0.4"
+description = "kAFL/Nyx Kernel Fuzzer"
+license = "AGPL-3.0-or-later"
+authors = ["Steffen Schulz <steffen.schulz@intel.com>", "Mathieu Tarral <mathieu.tarral@intel.com>"]
+maintainers = ["Steffen Schulz <steffen.schulz@intel.com>", "Mathieu Tarral <mathieu.tarral@intel.com>"]
+readme = "README.md"
+homepage = "https://github.com/IntelLabs/kAFL"
+repository = "https://github.com/IntelLabs/kAFL"
+keywords = ["fuzzing", "security"]
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Environment :: Console',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU Affero General Public License v3',
+    'Operating System :: POSIX :: Linux',
+    'Programming Language :: Python',
+    'Topic :: Security',
+]
+include = ["kafl_fuzzer/logging.yaml"]
+build = "build_ext.py"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+mmh3 = "*"
+lz4 = "*"
+psutil = "*"
+fastrand = "*"
+inotify = "*"
+msgpack = "*"
+toposort = "*"
+pygraphviz = "*"
+pgrep = "*"
+tqdm = "*"
+six = "*"
+python-dateutil = "*"
+confuse = "*"
+flatdict = "*"
+
+[tool.poetry.dev-dependencies]
+ipdb = "*"
+
+[tool.poetry.scripts]
+kafl_fuzz = 'kafl_fuzz.py:main'
+kafl_debug = 'kafl_debug.py:main'
+kafl_cov = 'kafl_cov.py:main'
+kafl_gui = 'kafl_gui.py:entrypoint'
+kafl_plot = 'kafl_plot:entrypoint'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
