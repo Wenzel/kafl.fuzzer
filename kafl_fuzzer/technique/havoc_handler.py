@@ -296,9 +296,14 @@ def append_handler(handler):
 
 # placing dict entry at variable offset overlapping the end should also be useful?
 def dict_insert_sequence(data, entry, entry_pos=None):
-    #logger.debug("HAVOC DICT-INS: %s [%s] -> %s " % (repr(data), repr(entry), repr(newdata)))
+    logger.debug("HAVOC DICT-INS: %s [%s] -> %s " % (repr(data), repr(entry), repr(entry_pos)))
     if entry_pos is None:
-        entry_pos = rand.int(max([0, len(data) - len(entry)]))
+        limit = len(data) - len(entry)
+        logger.debug("HAVOC DICT-INS: limit = %s", limit)
+        entry_pos = rand.int(max([0, limit]))
+        logger.debug("HAVOC DICT-INS: entry_pos = %s", entry_pos)
+        if entry_pos is None:
+            logger.error("HAVOC DICT-INS: entry_pos is still None !")
     return b''.join([data[:entry_pos], entry, data[entry_pos+len(entry):]])
 
 def dict_replace_sequence(data, entry, entry_pos=None):
